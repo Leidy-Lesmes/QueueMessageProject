@@ -4,7 +4,9 @@ const { exec } = require('child_process');
 const path = require('path');
 const app = express();
 const port = 4000;
+const cors = require('cors');
 
+app.use(cors());
 app.use(express.json());
 
 let requestQueue = [];
@@ -62,12 +64,12 @@ function processQueue() {
     if (requestQueue.length > totalCapacity && !isCreatingInstance) {
         console.log('Creating new instance due to queue size...');
         createNewInstance().then(() => {
-          console.log('Instance created successfully');
-          processQueue();
+            console.log('Instance created successfully');
+            processQueue();
         }).catch((error) => {
-          console.error('Error creating new instance:', error);
+            console.error('Error creating new instance:', error);
         });
-      }
+    }
 
     console.log('Request Queue:', requestQueue);
 }
@@ -78,36 +80,36 @@ if (process.env.NODE_PORT) {
 }
 
 function createNewInstance() {
-  isCreatingInstance = true;
-  lastAssignedPort += 1;
-  const NODE_PORT = lastAssignedPort;
-  const NODE_IP = process.env.NODE_IP || 'localhost';
-  const IP_SW = process.env.IP_SW || 'http://localhost:4000';
+    isCreatingInstance = true;
+    lastAssignedPort += 1;
+    const NODE_PORT = lastAssignedPort;
+    const NODE_IP = process.env.NODE_IP || 'localhost';
+    const IP_SW = process.env.IP_SW || 'http://localhost:4000';
 
-  const newInstanceURL = `http://${NODE_IP}:${NODE_PORT}`;
-  instances.push(newInstanceURL);
-  console.log(`Nueva instancia agregada a la lista: ${newInstanceURL}`);
-  console.log('Lista actual de instancias:', instances);
+    const newInstanceURL = `http://${NODE_IP}:${NODE_PORT}`;
+    instances.push(newInstanceURL);
+    console.log(`Nueva instancia agregada a la lista: ${newInstanceURL}`);
+    console.log('Lista actual de instancias:', instances);
 
-  const filePath = path.join(__dirname, '../Instancia-Algoritmo-Scrapping-/queue_consumer/scrapy-pdf-generator.js');
-  process.env.NODE_PORT = lastAssignedPort; // Actualizar el valor de NODE_PORT
-  const command = `start cmd /k node ${filePath} ${NODE_PORT} ${NODE_IP} ${IP_SW}`;
+    const filePath = path.join(__dirname, '../Instancia-Algoritmo-Scrapping-/queue_consumer/scrapy-pdf-generator.js');
+    process.env.NODE_PORT = lastAssignedPort; // Actualizar el valor de NODE_PORT
+    const command = `start cmd /k node ${filePath} ${NODE_PORT} ${NODE_IP} ${IP_SW}`;
 
-  console.log(`Executing command: ${command}`);
+    console.log(`Executing command: ${command}`);
 
-  return new Promise((resolve, reject) => {
-    exec(command, (error, stdout, stderr) => {
-      if (error) {
-        console.error(`Error al ejecutar el comando: ${error.message}`);
-        reject(error);
-      } else {
-        console.log(`Instancia creada con éxito. Puerto: ${NODE_PORT}`);
+    return new Promise((resolve, reject) => {
+        exec(command, (error, stdout, stderr) => {
+            if (error) {
+                console.error(`Error al ejecutar el comando: ${error.message}`);
+                reject(error);
+            } else {
+                console.log(`Instancia creada con éxito. Puerto: ${NODE_PORT}`);
 
-        isCreatingInstance = false;
-        resolve();
-      }
+                isCreatingInstance = false;
+                resolve();
+            }
+        });
     });
-  });
 }
 
 
